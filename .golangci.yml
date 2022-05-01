@@ -43,13 +43,6 @@ linters-settings:
     allow-unused: false # report any unused nolint directives
     require-explanation: false # don't require an explanation for nolint directives
     require-specific: false # don't require nolint directives to be specific about which linter is being skipped
-  whitespace:
-    # Enforces newlines (or comments) after every multi-line if statement.
-    # Default: false
-    multi-if: true
-    # Enforces newlines (or comments) after every multi-line function signature.
-    # Default: false
-    multi-func: true
 
 linters:
   disable-all: true
