@@ -4,18 +4,25 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
 )
 
-func handle(ctx context.Context, request events.LambdaFunctionURLRequest) (response events.LambdaFunctionURLResponse, err error) {
+// shortened for readability
+type (
+	Req events.LambdaFunctionURLRequest
+	Res events.LambdaFunctionURLResponse
+)
+
+func handle(_ context.Context, request *Req) (response *Res, err error) {
 
 	if !strings.HasPrefix(request.RawPath, "/mlctrez") {
-		response = events.LambdaFunctionURLResponse{StatusCode: http.StatusNotFound}
+		response = &Res{StatusCode: http.StatusNotFound}
 		return
 	}
 
@@ -25,7 +32,7 @@ func handle(ctx context.Context, request events.LambdaFunctionURLRequest) (respo
 
 	var u *url.URL
 	if u, err = u.Parse(urlString); err != nil {
-		response = events.LambdaFunctionURLResponse{StatusCode: http.StatusInternalServerError}
+		response = &Res{StatusCode: http.StatusInternalServerError}
 		return response, err
 	}
 
@@ -34,18 +41,20 @@ func handle(ctx context.Context, request events.LambdaFunctionURLRequest) (respo
 	var res *http.Response
 
 	if res, err = http.DefaultClient.Do(req); err != nil {
-		response = events.LambdaFunctionURLResponse{StatusCode: http.StatusInternalServerError}
+		response = &Res{StatusCode: http.StatusInternalServerError}
 		return response, err
 	}
+
+	defer func() { _ = res.Body.Close() }()
 
 	var resBody []byte
 
-	if resBody, err = ioutil.ReadAll(res.Body); err != nil {
-		response = events.LambdaFunctionURLResponse{StatusCode: http.StatusInternalServerError}
+	if resBody, err = io.ReadAll(res.Body); err != nil {
+		response = &Res{StatusCode: http.StatusInternalServerError}
 		return response, err
 	}
 
-	response = events.LambdaFunctionURLResponse{
+	response = &Res{
 		StatusCode: res.StatusCode,
 		Headers: map[string]string{
 			"Content-Type":  res.Header.Get("Content-Type"),
@@ -54,10 +63,10 @@ func handle(ctx context.Context, request events.LambdaFunctionURLRequest) (respo
 		Body: string(resBody),
 	}
 
-	return
+	return response, nil
 }
 
-func dumpRequest(request events.LambdaFunctionURLRequest) {
+func dumpRequest(request *Req) {
 	if marshal, err := json.Marshal(request); err == nil {
 		fmt.Println(string(marshal))
 	}
