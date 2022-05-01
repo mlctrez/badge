@@ -20,7 +20,6 @@ type (
 )
 
 func handle(_ context.Context, request *Req) (response *Res, err error) {
-
 	if !strings.HasPrefix(request.RawPath, "/mlctrez") {
 		response = &Res{StatusCode: http.StatusNotFound}
 		return
