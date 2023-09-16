@@ -237,13 +237,6 @@ func (bc *buildContext) ensureFunction() (err error) {
 		}
 		waitForPolicy = 0
 	}
-	_, err = bc.lamClient.AddPermission(bc.ctx, &lambda.AddPermissionInput{
-		Action:       aws.String("lambda:InvokeFunction"),
-		FunctionName: &bc.fnName,
-		Principal:    aws.String("ses.amazonaws.com"),
-		StatementId:  aws.String("allowSesInvoke"),
-	})
-
 	return err
 }
 
